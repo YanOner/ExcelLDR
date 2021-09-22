@@ -9,15 +9,34 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.stream.Stream;
 
 public class Prueba {
 
     public static void main(String[] args) {
 
-        String fileName = "anexo5-sunedu.xlsx";
-        String pathFile = "D:\\" + fileName;
+        String pathFiles = "D:\\excels";
 
-        try (FileInputStream file = new FileInputStream(new File(pathFile))) {
+        try (Stream<Path> paths = Files.walk(Paths.get(pathFiles))) {
+            paths
+                    .filter(Files::isRegularFile)
+                    .forEach(path -> {
+                        leerExcel(pathFiles, path.getFileName().toString());
+                    });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static void leerExcel(String pathFile, String fileName) {
+
+        try (FileInputStream file = new FileInputStream(new File(pathFile+"//"+fileName))) {
             // leer archivo excel
             XSSFWorkbook worbook = new XSSFWorkbook(file);
             //obtener la hoja que se va leer
@@ -30,17 +49,22 @@ public class Prueba {
             int count = 0;
             // Archivo nuevo
             XSSFWorkbook newWorbook = new XSSFWorkbook();
-            XSSFSheet newSheet = newWorbook.createSheet("anexo5-onpe");
+            XSSFSheet newSheet = newWorbook.createSheet("anexo5");
             int rowSize = sheet.getLastRowNum();
             int rowOld = 0;
             for(int i = 0;i<rowSize;i++) {
                 row = sheet.getRow(i);
                 XSSFRow newRow = newSheet.createRow(i);
 
-                copyCells(row, newRow);
-
                 Cell cell = row.getCell(2);
                 String cellHashValue = cell.getStringCellValue();
+
+                if (cellHashValue.equals("q3lcvww7")) {
+                    int x = 0;
+                }
+
+                copyCells(row, newRow);
+
                 if (lastHashValue.equals(cellHashValue)) {
 //                    System.out.println("cellHashValue: " + cellHashValue);
                     //Motivo
@@ -52,7 +76,11 @@ public class Prueba {
                         if (StringUtils.isBlank(cellMotivoValue)) {
                             cellNuevoMotivo.setCellValue(cellMotivoValue);
                         } else {
-                            cellNuevoMotivo.setCellValue(cellNuevoMotivoValue + ", " + cellMotivoValue);
+                            if (StringUtils.isBlank(cellNuevoMotivoValue)) {
+                                cellNuevoMotivo.setCellValue(cellMotivoValue);
+                            } else {
+                                cellNuevoMotivo.setCellValue(cellNuevoMotivoValue + ", " + cellMotivoValue);
+                            }
                         }
                     }
                     //Otros
@@ -67,35 +95,68 @@ public class Prueba {
                     }
 
                     //Unidad Organica
-                    Cell cellUO = row.getCell(10);
-                    Cell cellNuevoUO = newSheet.getRow(rowOld).getCell(10);
-                    String cellUOValue = "";
+                    Cell cellUO = row.getCell(13);
+                    Cell cellNuevoUO = newSheet.getRow(rowOld).getCell(13);
+                    String cellUOValue;
                     if (cellUO != null && cellUO.getCellType().equals(CellType.NUMERIC)) {
                         cellUOValue = String.valueOf(cellUO.getNumericCellValue());
                     } else {
                         cellUOValue = cellUO==null?"":cellUO.getStringCellValue();
                     }
 
-                    String cellNuevoUOValue = "";
+                    String cellNuevoUOValue;
                     if (cellNuevoUO != null && cellNuevoUO.getCellType().equals(CellType.NUMERIC)) {
                         cellNuevoUOValue = String.valueOf(cellNuevoUO.getNumericCellValue());
                     } else {
                         cellNuevoUOValue = cellNuevoUO==null?"":cellNuevoUO.getStringCellValue();
                     }
 
-                    if (cellNuevoUOValue.indexOf(cellUOValue) == -1) {
+                    if (!cellNuevoUOValue.contains(cellUOValue)) {
                         if (StringUtils.isBlank(cellUOValue)) {
                             cellNuevoUO.setCellValue(cellUOValue);
                         } else {
-                            cellNuevoUO.setCellValue(cellNuevoUOValue + ", " + cellUOValue);
+                            if (StringUtils.isBlank(cellNuevoUOValue)) {
+                                cellNuevoUO.setCellValue(cellUOValue);
+                            } else {
+                                cellNuevoUO.setCellValue(cellNuevoUOValue + ", " + cellUOValue);
+                            }
+                        }
+                    }
+
+                    //Tipo Respuesta
+                    Cell cellTR = row.getCell(12);
+                    Cell cellNuevoTR = newSheet.getRow(rowOld).getCell(12);
+                    String cellTRValue;
+                    if (cellTR != null && cellTR.getCellType().equals(CellType.NUMERIC)) {
+                        cellTRValue = String.valueOf(cellTR.getNumericCellValue());
+                    } else {
+                        cellTRValue = cellTR==null?"":cellTR.getStringCellValue();
+                    }
+
+                    String cellNuevoTRValue;
+                    if (cellNuevoTR != null && cellNuevoTR.getCellType().equals(CellType.NUMERIC)) {
+                        cellNuevoTRValue = String.valueOf(cellNuevoTR.getNumericCellValue());
+                    } else {
+                        cellNuevoTRValue = cellNuevoTR==null?"":cellNuevoTR.getStringCellValue();
+                    }
+
+                    if (!cellNuevoTRValue.contains(cellTRValue)) {
+                        if (StringUtils.isBlank(cellTRValue)) {
+                            cellNuevoTR.setCellValue(cellTRValue);
+                        } else {
+                            if (StringUtils.isBlank(cellNuevoTRValue)) {
+                                cellNuevoTR.setCellValue(cellTRValue);
+                            } else {
+                                cellNuevoTR.setCellValue(cellNuevoTRValue + ", " + cellTRValue);
+                            }
                         }
                     }
 
                     if (rowOld == 0) {
-                        rowOld = i;
-                    } else {
-                        newSheet.removeRow(newRow);
+                        rowOld = i;//fila actual
                     }
+                    //borrar fila nueva
+                    newSheet.removeRow(newRow);
                     count++;
                 } else {
                     lastHashValue = cellHashValue;
@@ -109,20 +170,20 @@ public class Prueba {
                     if (StringUtils.isBlank(cellMotivos1Value) && !StringUtils.isBlank(cellOtros1Value)) {
                         cellMotivos1.setCellValue("otros");
                     }
+
                 }
             }
 //            System.out.println("Repetidos: " + count);
 
-            File newFile = new File("D://new"+fileName);
+            File newFile = new File(pathFile+"//new-"+fileName);
             try (FileOutputStream fileOuS = new FileOutputStream(newFile)){
                 if (newFile.exists()) {// si el archivo existe se elimina
                     newFile.delete();
-                    System.out.println("Archivo eliminado");
                 }
                 newWorbook.write(fileOuS);
                 fileOuS.flush();
                 fileOuS.close();
-                System.out.println("Archivo Creado");
+                System.out.println(fileName + " Archivo Creado " + LocalDateTime.now());
             } catch (Exception e) {
                 throw e;
             }
@@ -130,7 +191,6 @@ public class Prueba {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     private static void copyCells(XSSFRow row, XSSFRow newRow) {
@@ -139,7 +199,27 @@ public class Prueba {
             XSSFCell cell = row.getCell(i);
             Cell newCell = newRow.createCell(countCell);
             if (cell != null && cell.getCellType().equals(CellType.NUMERIC)) {
-                newCell.setCellValue(cell.getNumericCellValue());
+                if (i == 9) {//cell dni
+                    String isDNI = newRow.getCell(8).getStringCellValue();
+                    if (isDNI.equals("DNI")) {
+                        try {
+                            int cd = (int) cell.getNumericCellValue();
+                            String pl = String.format("%08d", cd);
+                            newCell.setCellValue(pl);
+                        } catch (Exception e) {
+                            newCell.setCellValue(cell.getNumericCellValue());
+                        }
+                    } else {
+                        try {
+                            int cd = (int) cell.getNumericCellValue();
+                            String pl = String.format("%09d", cd);
+                            newCell.setCellValue(pl);
+                        } catch (Exception e) {
+                            newCell.setCellValue(cell.getNumericCellValue());
+                        }                    }
+                } else {
+                    newCell.setCellValue(cell.getNumericCellValue());
+                }
             } else {
                 if (cell == null || StringUtils.isBlank(cell.getStringCellValue())) {
                     newCell.setCellValue("");
