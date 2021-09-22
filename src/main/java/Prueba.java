@@ -9,13 +9,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.Iterator;
 
 public class Prueba {
 
     public static void main(String[] args) {
 
-        String fileName = "anexo5-onpe.xlsx";
+        String fileName = "anexo5-sunedu.xlsx";
         String pathFile = "D:\\" + fileName;
 
         try (FileInputStream file = new FileInputStream(new File(pathFile))) {
@@ -112,9 +111,9 @@ public class Prueba {
                     }
                 }
             }
-            System.out.println("Repetidos: " + count);
+//            System.out.println("Repetidos: " + count);
 
-            File newFile = new File("D://newFileOnpe.xlsx");
+            File newFile = new File("D://new"+fileName);
             try (FileOutputStream fileOuS = new FileOutputStream(newFile)){
                 if (newFile.exists()) {// si el archivo existe se elimina
                     newFile.delete();
